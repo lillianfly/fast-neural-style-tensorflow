@@ -97,6 +97,7 @@ def get_network_fn(name, num_classes, weight_decay=0.0, is_training=False):
     """
     if name not in networks_map:
         raise ValueError('Name of network unknown %s' % name)
+    #　得到域名参数列表？
     arg_scope = arg_scopes_map[name](weight_decay=weight_decay)
     func = networks_map[name]
     @functools.wraps(func)

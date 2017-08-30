@@ -1,3 +1,5 @@
+# coding=utf-8
+
 # Copyright 2016 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +39,7 @@ import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 
 slim = tf.contrib.slim
+
 
 _R_MEAN = 123.68
 _G_MEAN = 116.78
@@ -228,9 +231,11 @@ def _mean_image_subtraction(image, means):
     if len(means) != num_channels:
         raise ValueError('len(means) must match the number of channels')
 
+    #　把第２维度拆成num_channels个
     channels = tf.split(image, num_channels, 2)
     for i in range(num_channels):
         channels[i] -= means[i]
+    #　把第２维合并
     return tf.concat(channels, 2)
 
 
@@ -297,9 +302,17 @@ def _aspect_preserving_resize(image, target_height, target_width):
     height = shape[0]
     width = shape[1]
     new_height, new_width = _smallest_size_at_least(height, width, target_height, target_width)
+    # 加维度
     image = tf.expand_dims(image, 0)
+    # Args:
+    #
+    # images: A
+    # Tensor.Must types: uint8, int8, int32, float32, float64.
+    # 4 - D with shape[batch, height, width, channels].
+    # size: A 1-D tensor of   2 elements: new_height, new_width
     resized_image = tf.image.resize_bilinear(image, [new_height, new_width],
                                              align_corners=False)
+    # 去掉值为１的维度
     resized_image = tf.squeeze(resized_image)
     resized_image.set_shape([None, None, 3])
     return resized_image

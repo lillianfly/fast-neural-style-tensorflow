@@ -15,6 +15,7 @@ def gram(layer):
     width = shape[1]
     height = shape[2]
     num_filters = shape[3]
+    # tf.stack貌似没用啊
     filters = tf.reshape(layer, tf.stack([num_images, -1, num_filters]))
     grams = tf.matmul(filters, filters, transpose_a=True) / tf.to_float(width * height * num_filters)
 
@@ -28,10 +29,12 @@ def get_style_features(FLAGS):
     2. Apply central crop
     """
     with tf.Graph().as_default():
+        # logits, end_points = network_fn(images)
         network_fn = nets_factory.get_network_fn(
             FLAGS.loss_model,
             num_classes=1,
             is_training=False)
+        #　返回处理函数
         image_preprocessing_fn, image_unprocessing_fn = preprocessing_factory.get_preprocessing(
             FLAGS.loss_model,
             is_training=False)
@@ -45,7 +48,7 @@ def get_style_features(FLAGS):
             image = tf.image.decode_jpeg(img_bytes)
         # image = _aspect_preserving_resize(image, size)
 
-        # Add the batch dimension
+        # Add the batch dimension 处理之后加维度
         images = tf.expand_dims(image_preprocessing_fn(image, size, size), 0)
         # images = tf.stack([image_preprocessing_fn(image, size, size)])
 
@@ -53,11 +56,12 @@ def get_style_features(FLAGS):
         features = []
         for layer in FLAGS.style_layers:
             feature = endpoints_dict[layer]
+            #　gram矩阵
             feature = tf.squeeze(gram(feature), [0])  # remove the batch dimension
             features.append(feature)
 
         with tf.Session() as sess:
-            # Restore variables for loss network.
+            # Restore variables for loss network.没看懂
             init_func = utils._get_init_fn(FLAGS)
             init_func(sess)
 

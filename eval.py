@@ -11,14 +11,14 @@ tf.app.flags.DEFINE_string('loss_model', 'vgg_16', 'The name of the architecture
                            'You can view all the support models in nets/nets_factory.py')
 tf.app.flags.DEFINE_integer('image_size', 256, 'Image size to train.')
 tf.app.flags.DEFINE_string("model_file", "models.ckpt", "")
-tf.app.flags.DEFINE_string("image_file", "a.jpg", "")
+tf.app.flags.DEFINE_string("image_file", "img/wave.jpg", "")
 
 FLAGS = tf.app.flags.FLAGS
 
 
 def main(_):
 
-    # Get image's height and width.
+    # Get image's height and width.图像的宽高
     height = 0
     width = 0
     with open(FLAGS.image_file, 'rb') as img:
@@ -35,18 +35,20 @@ def main(_):
         with tf.Session().as_default() as sess:
 
             # Read image data.
+            #　获取图像预处理方式的方法
             image_preprocessing_fn, _ = preprocessing_factory.get_preprocessing(
                 FLAGS.loss_model,
                 is_training=False)
+            # 调用方法读图像
             image = reader.get_image(FLAGS.image_file, height, width, image_preprocessing_fn)
 
-            # Add batch dimension
+            # Add batch dimension 添加batch维度１
             image = tf.expand_dims(image, 0)
 
             generated = model.net(image, training=False)
             generated = tf.cast(generated, tf.uint8)
 
-            # Remove batch dimension
+            # Remove batch dimension 第0维度值为１,去掉
             generated = tf.squeeze(generated, [0])
 
             # Restore model variables.

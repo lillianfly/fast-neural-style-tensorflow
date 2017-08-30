@@ -14,7 +14,7 @@ import argparse
 
 slim = tf.contrib.slim
 
-
+# 设置参数
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--conf', default='conf/mosaic.yml', help='the path to the conf file')
@@ -22,6 +22,7 @@ def parse_args():
 
 
 def main(FLAGS):
+    #　style特征
     style_features_t = losses.get_style_features(FLAGS)
 
     # Make sure the training path exists.
@@ -42,7 +43,9 @@ def main(FLAGS):
                 is_training=False)
             processed_images = reader.image(FLAGS.batch_size, FLAGS.image_size, FLAGS.image_size,
                                             'train2014/', image_preprocessing_fn, epochs=FLAGS.epoch)
+            # 经过生成网络
             generated = model.net(processed_images, training=True)
+            # tf.unstack 将value根据axis分解成num个张量，返回的值是list类型，如果没有指定num则根据axis推断出
             processed_generated = [image_preprocessing_fn(image, FLAGS.image_size, FLAGS.image_size)
                                    for image in tf.unstack(generated, axis=0, num=FLAGS.batch_size)
                                    ]
@@ -57,7 +60,7 @@ def main(FLAGS):
             """Build Losses"""
             content_loss = losses.content_loss(endpoints_dict, FLAGS.content_layers)
             style_loss, style_loss_summary = losses.style_loss(endpoints_dict, style_features_t, FLAGS.style_layers)
-            tv_loss = losses.total_variation_loss(generated)  # use the unprocessed image
+            tv_loss = losses.total_variation_loss(generated)  # use the unprocessed image,错位
 
             loss = FLAGS.style_weight * style_loss + FLAGS.content_weight * content_loss + FLAGS.tv_weight * tv_loss
 
@@ -85,6 +88,7 @@ def main(FLAGS):
             """Prepare to Train"""
             global_step = tf.Variable(0, name="global_step", trainable=False)
 
+            # 只训练残差网络
             variable_to_train = []
             for variable in tf.trainable_variables():
                 if not(variable.name.startswith(FLAGS.loss_model)):
@@ -110,6 +114,7 @@ def main(FLAGS):
                 saver.restore(sess, last_file)
 
             """Start Training"""
+            # 线程管理
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(coord=coord)
             start_time = time.time()

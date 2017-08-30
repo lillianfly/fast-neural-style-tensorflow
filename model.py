@@ -1,9 +1,11 @@
+# coding=utf-8
+
 import tensorflow as tf
 
-
+# 增加一圈padding，感觉和直接调用tf.nn.conv2d(x_padded, weight, strides=[1, strides, strides, 1], padding='SAME', name='conv')一样
 def conv2d(x, input_filters, output_filters, kernel, strides, mode='REFLECT'):
     with tf.variable_scope('conv'):
-
+        # 卷积[长，宽，输入通道数，输出通道数(相当于卷积个数)]
         shape = [kernel, kernel, input_filters, output_filters]
         weight = tf.Variable(tf.truncated_normal(shape, stddev=0.1), name='weight')
         x_padded = tf.pad(x, [[0, 0], [kernel / 2, kernel / 2], [kernel / 2, kernel / 2], [0, 0]], mode=mode)
@@ -22,7 +24,7 @@ def conv2d_transpose(x, input_filters, output_filters, kernel, strides):
         output_shape = tf.stack([batch_size, height, width, output_filters])
         return tf.nn.conv2d_transpose(x, weight, output_shape, strides=[1, strides, strides, 1], name='conv_transpose')
 
-
+# 扩大后卷积
 def resize_conv2d(x, input_filters, output_filters, kernel, strides, training):
     '''
     An alternative to transposed convolution where we first resize, then convolve.
@@ -46,9 +48,10 @@ def resize_conv2d(x, input_filters, output_filters, kernel, strides, training):
         return conv2d(x_resized, input_filters, output_filters, kernel, strides)
 
 
+#　计算均值方差
 def instance_norm(x):
     epsilon = 1e-9
-
+    #　[1,2]表示计算图像的均值方差
     mean, var = tf.nn.moments(x, [1, 2], keep_dims=True)
 
     return tf.div(tf.subtract(x, mean), tf.sqrt(tf.add(var, epsilon)))
@@ -93,7 +96,7 @@ def residual(x, filters, kernel, strides):
 
 
 def net(image, training):
-    # Less border effects when padding a little before passing through ..
+    # Less border effects when padding a little before passing through ..在穿过前为减少边界效应进行部分填充，应该是为了减少边界效应
     image = tf.pad(image, [[0, 0], [10, 10], [10, 10], [0, 0]], mode='REFLECT')
 
     with tf.variable_scope('conv1'):
@@ -128,6 +131,7 @@ def net(image, training):
     # Remove border effect reducing padding.
     height = tf.shape(y)[1]
     width = tf.shape(y)[2]
+    # 函数原型 tf.slice(inputs,begin,size,name='')　从inputs中抽取部分内容
     y = tf.slice(y, [0, 10, 10, 0], tf.stack([-1, height - 20, width - 20, -1]))
 
     return y
