@@ -22,7 +22,7 @@ def parse_args():
 
 
 def main(FLAGS):
-    #　style特征
+    #　1　style特征
     style_features_t = losses.get_style_features(FLAGS)
 
     # Make sure the training path exists.
@@ -33,17 +33,19 @@ def main(FLAGS):
     with tf.Graph().as_default():
         with tf.Session() as sess:
             """Build Network"""
+            # 2 构建loss网络 得到模型
             network_fn = nets_factory.get_network_fn(
                 FLAGS.loss_model,
                 num_classes=1,
                 is_training=False)
 
+            # 3　选择图像处理方法并处理图像
             image_preprocessing_fn, image_unprocessing_fn = preprocessing_factory.get_preprocessing(
                 FLAGS.loss_model,
                 is_training=False)
             processed_images = reader.image(FLAGS.batch_size, FLAGS.image_size, FLAGS.image_size,
                                             'train2014/', image_preprocessing_fn, epochs=FLAGS.epoch)
-            # 经过生成网络
+            # 4　经过生成网络
             generated = model.net(processed_images, training=True)
             # tf.unstack 将value根据axis分解成num个张量，返回的值是list类型，如果没有指定num则根据axis推断出
             processed_generated = [image_preprocessing_fn(image, FLAGS.image_size, FLAGS.image_size)
@@ -57,6 +59,7 @@ def main(FLAGS):
             for key in endpoints_dict:
                 tf.logging.info(key)
 
+            # 5 构建loss
             """Build Losses"""
             content_loss = losses.content_loss(endpoints_dict, FLAGS.content_layers)
             style_loss, style_loss_summary = losses.style_loss(endpoints_dict, style_features_t, FLAGS.style_layers)
@@ -101,7 +104,7 @@ def main(FLAGS):
                     variables_to_restore.append(v)
             saver = tf.train.Saver(variables_to_restore, write_version=tf.train.SaverDef.V1)
 
-            sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
+            sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()]) # local variables like epoch_num, batch_size
 
             # Restore variables for loss network.
             init_func = utils._get_init_fn(FLAGS)

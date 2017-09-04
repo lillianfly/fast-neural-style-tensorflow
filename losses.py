@@ -96,7 +96,7 @@ def style_loss(endpoints_dict, style_features_t, style_layers):
 def content_loss(endpoints_dict, content_layers):
     content_loss = 0
     for layer in content_layers:
-        generated_images, content_images = tf.split(endpoints_dict[layer], 2, 0)
+        generated_images, content_images = tf.split(endpoints_dict[layer], 2, 0) # 第0维分成２个
         size = tf.size(generated_images)
         content_loss += tf.nn.l2_loss(generated_images - content_images) * 2 / tf.to_float(size)  # remain the same as in the paper
     return content_loss

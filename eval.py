@@ -7,6 +7,7 @@ import model
 import time
 import os
 
+#　设置参数
 tf.app.flags.DEFINE_string('loss_model', 'vgg_16', 'The name of the architecture to evaluate. '
                            'You can view all the support models in nets/nets_factory.py')
 tf.app.flags.DEFINE_integer('image_size', 256, 'Image size to train.')
@@ -42,9 +43,10 @@ def main(_):
             # 调用方法读图像
             image = reader.get_image(FLAGS.image_file, height, width, image_preprocessing_fn)
 
-            # Add batch dimension 添加batch维度１
+            # Add batch dimension 添加batch维度１,形成4维向量
             image = tf.expand_dims(image, 0)
 
+            # 模型,training的主要作用是模型里面取图像大小时，取得图像大小 height = x.get_shape()[1].value if training else tf.shape(x)[1]  tf.shape其中x可以是tensor，也可不是tensor，返回是一个tensor
             generated = model.net(image, training=False)
             generated = tf.cast(generated, tf.uint8)
 

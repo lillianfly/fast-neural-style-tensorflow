@@ -89,6 +89,8 @@ ENV/
 .ropeproject
 
 
+workspace.xml
+
 slim-official/
 train2014
 generated/
@@ -96,4 +98,11 @@ models/
 tensorboard/
 result/
 pretrained/
+
+
+# idea ignore
+.idea/
+*.ipr
+*.iml
+*.iws
 
