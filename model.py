@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 
+
 # 增加一圈padding，感觉和直接调用tf.nn.conv2d(x_padded, weight, strides=[1, strides, strides, 1], padding='SAME', name='conv')一样
 def conv2d(x, input_filters, output_filters, kernel, strides, mode='REFLECT'):
     with tf.variable_scope('conv'):
@@ -133,5 +134,9 @@ def net(image, training):
     width = tf.shape(y)[2]
     # 函数原型 tf.slice(inputs,begin,size,name='')　从inputs中抽取部分内容
     y = tf.slice(y, [0, 10, 10, 0], tf.stack([-1, height - 20, width - 20, -1]))
+
+    # writer = tf.summary.FileWriter(
+    #     '/home/qianyingli/data_analysis/fast-neural-style-tensorflow/log', tf.get_default_graph())
+    # writer.close()
 
     return y
